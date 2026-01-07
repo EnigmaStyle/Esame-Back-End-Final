@@ -1,0 +1,72 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### Cursor AI ###
+.cursor/rules/codacy.mdc
+
+### Security - Sensitive Files ###
+# IMPORTANTE: Non committare mai file con credenziali reali
+env.properties
+*.env
+.env.*
+*.local
+application-local.properties
+application-prod.properties
+application-secret.properties
+
+# Chiavi e certificati
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+*.keystore
+
+# Log files (potrebbero contenere dati sensibili)
+*.log
+logs/
+
+# Backup files
+*.bak
+*.backup
+*.sql.bak
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.swp

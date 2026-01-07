@@ -1,0 +1,739 @@
+{
+	"info": {
+		"name": "Cinema Multi-Sala API",
+		"description": "API completa per la gestione di un cinema multi-sala.\n\n## 🚀 Quick Start\n1. Avvia l'applicazione: `./mvnw spring-boot:run`\n2. Esegui **Login Customer** (o Admin/Manager)\n3. Il token JWT viene salvato automaticamente\n4. Testa tutte le altre API!\n\n## 👥 Utenti Pre-caricati\n- **CUSTOMER**: customer@example.com / customer123\n- **MANAGER**: manager@cinema.com / manager123\n- **ADMIN**: admin@cinema.com / admin123\n\n## 🔐 Permessi\n- **ADMIN**: Accesso completo a tutto\n- **MANAGER**: Gestione Film, Proiezioni, Sale\n- **CUSTOMER**: Prenotazioni e Recensioni",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "🔐 Authentication",
+			"item": [
+				{
+					"name": "Login Customer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"token\", jsonData.token);",
+									"    pm.collectionVariables.set(\"userId\", jsonData.id);",
+									"    console.log(\"✅ Token saved! User: \" + jsonData.email + \" Role: \" + jsonData.role);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"customer123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login Manager",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"token\", jsonData.token);",
+									"    pm.collectionVariables.set(\"userId\", jsonData.id);",
+									"    console.log(\"✅ Token saved! User: \" + jsonData.email + \" Role: \" + jsonData.role);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"manager@cinema.com\",\n  \"password\": \"manager123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"token\", jsonData.token);",
+									"    pm.collectionVariables.set(\"userId\", jsonData.id);",
+									"    console.log(\"✅ Token saved! User: \" + jsonData.email + \" Role: \" + jsonData.role);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@cinema.com\",\n  \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Register New Customer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"token\", jsonData.token);",
+									"    pm.collectionVariables.set(\"userId\", jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"Password1!\",\n  \"firstName\": \"Mario\",\n  \"lastName\": \"Rossi\",\n  \"userType\": \"CUSTOMER\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "register"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "👤 Users",
+			"item": [
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users", "me"]
+						}
+					}
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"Mario Updated\",\n  \"lastName\": \"Rossi Updated\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users", "me"]
+						}
+					}
+				},
+				{
+					"name": "Upload Profile Image",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"body": {
+							"mode": "formdata",
+							"formdata": [{"key": "file", "type": "file", "src": []}]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/me/profile-image",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users", "me", "profile-image"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🎬 Movies",
+			"item": [
+				{
+					"name": "Get All Movies",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/movies",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "movies"]
+						}
+					}
+				},
+				{
+					"name": "Get Movie by ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/movies/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "movies", "1"]
+						}
+					}
+				},
+				{
+					"name": "Get Movies by Genre",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/movies/genre/Sci-Fi",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "movies", "genre", "Sci-Fi"]
+						}
+					}
+				},
+				{
+					"name": "Create Movie (MANAGER/ADMIN)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Avatar 2\",\n  \"description\": \"Jake Sully lives with his newfound family formed on the extrasolar moon Pandora.\",\n  \"genre\": \"Sci-Fi\",\n  \"duration\": 192,\n  \"releaseDate\": \"2022-12-16\",\n  \"rating\": 7.6,\n  \"director\": \"James Cameron\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/movies",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "movies"]
+						}
+					}
+				},
+				{
+					"name": "Update Movie (MANAGER/ADMIN)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Inception - Director's Cut\",\n  \"rating\": 9.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/movies/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "movies", "1"]
+						}
+					}
+				},
+				{
+					"name": "Delete Movie (MANAGER/ADMIN)",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/movies/9",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "movies", "9"]
+						}
+					}
+				},
+				{
+					"name": "Upload Movie Poster (MANAGER/ADMIN)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"body": {
+							"mode": "formdata",
+							"formdata": [{"key": "file", "type": "file", "src": []}]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/movies/1/poster",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "movies", "1", "poster"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🏛️ Cinema Halls",
+			"item": [
+				{
+					"name": "Get All Cinema Halls",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/cinema-halls",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cinema-halls"]
+						}
+					}
+				},
+				{
+					"name": "Get Cinema Hall by ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/cinema-halls/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cinema-halls", "1"]
+						}
+					}
+				},
+				{
+					"name": "Create Cinema Hall (MANAGER/ADMIN)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sala 4 - Dolby\",\n  \"totalRows\": 12,\n  \"seatsPerRow\": 18,\n  \"description\": \"Sala con audio Dolby Surround 7.1\",\n  \"managerId\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cinema-halls",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cinema-halls"]
+						}
+					}
+				},
+				{
+					"name": "Update Cinema Hall (MANAGER/ADMIN)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sala 1 - IMAX Premium\",\n  \"description\": \"Sala principale con schermo IMAX 4K\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cinema-halls/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cinema-halls", "1"]
+						}
+					}
+				},
+				{
+					"name": "Delete Cinema Hall (MANAGER/ADMIN)",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/cinema-halls/4",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cinema-halls", "4"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📅 Screenings",
+			"item": [
+				{
+					"name": "Get All Screenings",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/screenings",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "screenings"]
+						}
+					}
+				},
+				{
+					"name": "Get Screening by ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/screenings/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "screenings", "1"]
+						}
+					}
+				},
+				{
+					"name": "Search by Date Range",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"startDate\": \"2026-01-01T00:00:00\",\n  \"endDate\": \"2026-12-31T23:59:59\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/screenings/search",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "screenings", "search"]
+						}
+					}
+				},
+				{
+					"name": "Search by Genre",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"genre\": \"Sci-Fi\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/screenings/search",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "screenings", "search"]
+						}
+					}
+				},
+				{
+					"name": "Create Screening (MANAGER/ADMIN)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"movieId\": 1,\n  \"cinemaHallId\": 1,\n  \"startTime\": \"2026-02-14T20:00:00\",\n  \"endTime\": \"2026-02-14T22:30:00\",\n  \"ticketPrice\": 15.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/screenings",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "screenings"]
+						}
+					}
+				},
+				{
+					"name": "Update Screening (MANAGER/ADMIN)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ticketPrice\": 18.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/screenings/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "screenings", "1"]
+						}
+					}
+				},
+				{
+					"name": "Delete Screening (MANAGER/ADMIN)",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/screenings/50",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "screenings", "50"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🎟️ Bookings",
+			"item": [
+				{
+					"name": "Get All Bookings (ADMIN/MANAGER)",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "bookings"]
+						}
+					}
+				},
+				{
+					"name": "Get Booking by ID",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "bookings", "1"]
+						}
+					}
+				},
+				{
+					"name": "Get My Bookings (CUSTOMER)",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings/customer/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "bookings", "customer", "{{userId}}"]
+						}
+					}
+				},
+				{
+					"name": "Create Booking (CUSTOMER/ADMIN)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": {{userId}},\n  \"screeningId\": 1,\n  \"seatIds\": [3, 4, 5]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "bookings"]
+						}
+					}
+				},
+				{
+					"name": "Cancel Booking",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings/1/cancel",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "bookings", "1", "cancel"]
+						}
+					}
+				},
+				{
+					"name": "Get Booked Seats Count (Public)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings/screening/1/booked-seats",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "bookings", "screening", "1", "booked-seats"]
+						}
+					}
+				},
+				{
+					"name": "Get Revenue by Screening (MANAGER/ADMIN)",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings/screening/1/revenue",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "bookings", "screening", "1", "revenue"]
+						}
+					}
+				},
+				{
+					"name": "Get Revenue by Movie (MANAGER/ADMIN)",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings/movie/1/revenue",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "bookings", "movie", "1", "revenue"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "⭐ Reviews",
+			"item": [
+				{
+					"name": "Get All Reviews (Public)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/reviews",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reviews"]
+						}
+					}
+				},
+				{
+					"name": "Get Review by ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/reviews/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reviews", "1"]
+						}
+					}
+				},
+				{
+					"name": "Get Reviews by Movie",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/reviews/movie/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reviews", "movie", "1"]
+						}
+					}
+				},
+				{
+					"name": "Get Average Rating by Movie",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/reviews/movie/1/average-rating",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reviews", "movie", "1", "average-rating"]
+						}
+					}
+				},
+				{
+					"name": "Create Review (CUSTOMER/ADMIN)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": {{userId}},\n  \"movieId\": 2,\n  \"rating\": 5,\n  \"comment\": \"Un capolavoro assoluto! Nolan è un genio.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/reviews",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reviews"]
+						}
+					}
+				},
+				{
+					"name": "Update Review (CUSTOMER/ADMIN)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"},
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"rating\": 4,\n  \"comment\": \"Molto bello ma un po' lungo.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/reviews/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reviews", "1"]
+						}
+					}
+				},
+				{
+					"name": "Delete Review (CUSTOMER/ADMIN)",
+					"request": {
+						"method": "DELETE",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/reviews/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "reviews", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📧 Email (Mailgun)",
+			"description": "Test Mailgun email service. ADMIN only.\n\n⚠️ SANDBOX: Con dominio sandbox, le email possono essere inviate SOLO a destinatari autorizzati su Mailgun.",
+			"item": [
+				{
+					"name": "Verify Mailgun Config (ADMIN)",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/email/verify",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "email", "verify"]
+						},
+						"description": "Verifica se la configurazione Mailgun è corretta. Richiede ruolo ADMIN."
+					}
+				},
+				{
+					"name": "Send Test Email (ADMIN)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/email/test?to=tuaemail@example.com",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "email", "test"],
+							"query": [{"key": "to", "value": "tuaemail@example.com", "description": "Email destinatario (deve essere autorizzato su Mailgun sandbox)"}]
+						},
+						"description": "Invia una email di test. Con dominio sandbox, il destinatario DEVE essere autorizzato su Mailgun."
+					}
+				}
+			]
+		}
+	]
+}

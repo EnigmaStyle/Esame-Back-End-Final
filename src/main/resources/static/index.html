@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinema Multi-Sala</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; min-height: 100vh; }
+        
+        /* Login Page */
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+        }
+        .login-card h1 { text-align: center; margin-bottom: 10px; color: #1f2937; font-size: 28px; }
+        .login-card p { text-align: center; color: #6b7280; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #374151; }
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus { outline: none; border-color: #667eea; }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102,126,234,0.4); }
+        .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .btn-small { padding: 10px 20px; width: auto; }
+        .credentials-box {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f0f9ff;
+            border-radius: 10px;
+            border: 1px solid #bae6fd;
+        }
+        .credentials-box p { margin: 5px 0; font-size: 14px; color: #0369a1; text-align: left; }
+        .hidden { display: none !important; }
+        
+        /* Dashboard */
+        .navbar {
+            background: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .navbar-brand { font-size: 22px; font-weight: 700; color: #667eea; }
+        .navbar-menu { display: flex; gap: 10px; }
+        .nav-link {
+            padding: 10px 20px;
+            color: #6b7280;
+            text-decoration: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+        }
+        .nav-link:hover, .nav-link.active { background: #f3f4f6; color: #667eea; }
+        .navbar-user { display: flex; align-items: center; gap: 15px; }
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-customer { background: #d1fae5; color: #065f46; }
+        .badge-manager { background: #fef3c7; color: #92400e; }
+        .badge-admin { background: #fee2e2; color: #991b1b; }
+        
+        /* Main Content */
+        .main-content { padding: 30px; max-width: 1200px; margin: 0 auto; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .section-header h2 { color: #1f2937; font-size: 24px; }
+        
+        /* Cards Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.12); }
+        .card-poster {
+            height: 180px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+        }
+        .card-body { padding: 20px; }
+        .card-body h3 { margin-bottom: 10px; color: #1f2937; }
+        .card-meta { display: flex; gap: 15px; color: #6b7280; font-size: 14px; margin-bottom: 10px; }
+        .card-actions { margin-top: 15px; display: flex; gap: 10px; }
+        
+        /* List Items */
+        .list-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .list-item h3 { margin-bottom: 5px; color: #1f2937; }
+        .list-item p { color: #6b7280; font-size: 14px; }
+        
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .stat-card h3 { color: #6b7280; font-size: 14px; margin-bottom: 10px; }
+        .stat-card .number { font-size: 36px; font-weight: 700; color: #667eea; }
+        
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-content h2 { margin-bottom: 20px; }
+        .close-btn {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+            color: #9ca3af;
+        }
+        .close-btn:hover { color: #1f2937; }
+    </style>
+</head>
+<body>
+    <!-- LOGIN PAGE -->
+    <div id="login-page" class="login-page">
+        <div class="login-card">
+            <h1>🎬 Cinema Multi-Sala</h1>
+            <p>Accedi al tuo account</p>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="login-email" placeholder="email@esempio.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="login-password" placeholder="••••••••">
+            </div>
+            <button class="btn" onclick="doLogin()">Accedi</button>
+            <p style="text-align:center; margin-top:20px;">
+                Non hai un account? <a href="javascript:void(0)" onclick="showRegister()" style="color:#667eea; font-weight:600;">Registrati</a>
+            </p>
+            <div class="credentials-box">
+                <p><strong>👤 Customer:</strong> customer@example.com / customer123</p>
+                <p><strong>👔 Manager:</strong> manager@cinema.com / manager123</p>
+                <p><strong>🔑 Admin:</strong> admin@cinema.com / admin123</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- REGISTER PAGE -->
+    <div id="register-page" class="login-page hidden">
+        <div class="login-card">
+            <h1>🎬 Registrazione</h1>
+            <p>Crea il tuo account</p>
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" id="reg-firstname" placeholder="Mario">
+            </div>
+            <div class="form-group">
+                <label>Cognome</label>
+                <input type="text" id="reg-lastname" placeholder="Rossi">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="reg-email" placeholder="email@esempio.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="reg-password" placeholder="Min 8 caratteri">
+                <small style="color:#6b7280; font-size:12px;">Min 8 caratteri, 1 maiuscola, 1 minuscola, 1 numero, 1 speciale (@#$%^&+=!)</small>
+            </div>
+            <button class="btn" onclick="doRegister()">Registrati</button>
+            <p style="text-align:center; margin-top:20px;">
+                Hai già un account? <a href="javascript:void(0)" onclick="showLogin()" style="color:#667eea; font-weight:600;">Accedi</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard-page" class="hidden">
+        <nav class="navbar">
+            <div class="navbar-brand">🎬 Cinema Multi-Sala</div>
+            <div class="navbar-menu" id="nav-menu"></div>
+            <div class="navbar-user">
+                <span id="user-badge"></span>
+                <span id="user-email"></span>
+                <button class="btn btn-danger btn-small" onclick="doLogout()">Esci</button>
+            </div>
+        </nav>
+        <main class="main-content">
+            <div id="content"></div>
+        </main>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // === GLOBAL STATE ===
+        var token = localStorage.getItem('token');
+        var user = JSON.parse(localStorage.getItem('user') || 'null');
+
+        // === AUTO LOGIN ===
+        if (token && user) {
+            showDashboard();
+        }
+
+        // === SHOW LOGIN/REGISTER ===
+        function showLogin() {
+            document.getElementById('register-page').classList.add('hidden');
+            document.getElementById('login-page').classList.remove('hidden');
+        }
+        function showRegister() {
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('register-page').classList.remove('hidden');
+        }
+
+        // === REGISTER ===
+        function doRegister() {
+            var firstName = document.getElementById('reg-firstname').value;
+            var lastName = document.getElementById('reg-lastname').value;
+            var email = document.getElementById('reg-email').value;
+            var password = document.getElementById('reg-password').value;
+            
+            if (!firstName || !lastName || !email || !password) {
+                alert('Compila tutti i campi');
+                return;
+            }
+            
+            // Validate password
+            var pwdRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\S+$).{8,}$/;
+            if (!pwdRegex.test(password)) {
+                alert('Password non valida!\n\nDeve contenere:\n- Almeno 8 caratteri\n- 1 lettera maiuscola\n- 1 lettera minuscola\n- 1 numero\n- 1 carattere speciale (@#$%^&+=!)');
+                return;
+            }
+            
+            fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: email,
+                    password: password,
+                    userType: 'CUSTOMER'
+                })
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.token) {
+                    token = data.token;
+                    user = { id: data.id, email: data.email, role: data.role };
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('user', JSON.stringify(user));
+                    alert('✅ Registrazione completata!\nBenvenuto ' + firstName + '!');
+                    showDashboard();
+                } else {
+                    alert('Errore: ' + (data.message || 'Registrazione fallita'));
+                }
+            })
+            .catch(function(err) { alert('Errore di connessione'); });
+        }
+
+        // === LOGIN ===
+        function doLogin() {
+            var email = document.getElementById('login-email').value;
+            var pwd = document.getElementById('login-password').value;
+            
+            if (!email || !pwd) {
+                alert('Inserisci email e password');
+                return;
+            }
+            
+            fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, password: pwd })
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.token) {
+                    token = data.token;
+                    user = { id: data.id, email: data.email, role: data.role };
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('user', JSON.stringify(user));
+                    showDashboard();
+                } else {
+                    alert('Errore: ' + (data.message || 'Credenziali non valide'));
+                }
+            })
+            .catch(function(err) { alert('Errore di connessione'); });
+        }
+
+        // === LOGOUT ===
+        function doLogout() {
+            localStorage.clear();
+            token = null;
+            user = null;
+            document.getElementById('login-page').classList.remove('hidden');
+            document.getElementById('dashboard-page').classList.add('hidden');
+        }
+
+        // === SHOW DASHBOARD ===
+        function showDashboard() {
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('dashboard-page').classList.remove('hidden');
+            
+            // User info
+            document.getElementById('user-email').textContent = user.email;
+            var badgeClass = user.role === 'ADMIN' ? 'badge-admin' : user.role === 'MANAGER' ? 'badge-manager' : 'badge-customer';
+            document.getElementById('user-badge').innerHTML = '<span class="badge ' + badgeClass + '">' + user.role + '</span>';
+            
+            // Build menu based on role
+            buildMenu();
+            
+            // Load default page
+            loadFilm();
+        }
+
+        // === BUILD MENU ===
+        function buildMenu() {
+            var menu = document.getElementById('nav-menu');
+            var html = '';
+            
+            html += '<button class="nav-link active" onclick="setActive(this); loadFilm()">🎬 Film</button>';
+            html += '<button class="nav-link" onclick="setActive(this); loadProiezioni()">📅 Proiezioni</button>';
+            
+            if (user.role === 'CUSTOMER' || user.role === 'ADMIN') {
+                html += '<button class="nav-link" onclick="setActive(this); loadPrenotazioni()">🎟️ Prenotazioni</button>';
+                html += '<button class="nav-link" onclick="setActive(this); loadRecensioni()">⭐ Recensioni</button>';
+            }
+            
+            if (user.role === 'MANAGER' || user.role === 'ADMIN') {
+                html += '<button class="nav-link" onclick="setActive(this); loadSale()">🏛️ Sale</button>';
+            }
+            
+            if (user.role === 'ADMIN') {
+                html += '<button class="nav-link" onclick="setActive(this); loadAdmin()">👑 Admin</button>';
+            }
+            
+            menu.innerHTML = html;
+        }
+        
+        function setActive(el) {
+            document.querySelectorAll('.nav-link').forEach(function(btn) { btn.classList.remove('active'); });
+            el.classList.add('active');
+        }
+
+        // === API HELPER ===
+        function api(endpoint, options) {
+            options = options || {};
+            var headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            options.headers = headers;
+            return fetch('/api' + endpoint, options).then(function(res) { return res.json(); });
+        }
+
+        // === LOAD FILM ===
+        function loadFilm() {
+            document.getElementById('content').innerHTML = '<p>Caricamento...</p>';
+            
+            api('/movies').then(function(movies) {
+                var canManage = user.role === 'MANAGER' || user.role === 'ADMIN';
+                var html = '<div class="section-header"><h2>🎬 Film in Programmazione</h2>';
+                if (canManage) html += '<button class="btn btn-small" onclick="showAddFilm()">+ Aggiungi Film</button>';
+                html += '</div><div class="grid">';
+                
+                movies.forEach(function(m) {
+                    html += '<div class="card"><div class="card-poster">🎬</div><div class="card-body">';
+                    html += '<h3>' + m.title + '</h3>';
+                    html += '<div class="card-meta"><span>🎭 ' + m.genre + '</span><span>⏱️ ' + m.duration + ' min</span></div>';
+                    if (m.rating) html += '<p>⭐ ' + m.rating.toFixed(1) + '/10</p>';
+                    if (canManage) {
+                        html += '<div class="card-actions">';
+                        html += '<button class="btn btn-danger btn-small" onclick="deleteFilm(' + m.id + ')">🗑️</button>';
+                        html += '</div>';
+                    }
+                    html += '</div></div>';
+                });
+                
+                html += '</div>';
+                document.getElementById('content').innerHTML = html;
+            });
+        }
+
+        // === LOAD PROIEZIONI ===
+        function loadProiezioni() {
+            document.getElementById('content').innerHTML = '<p>Caricamento...</p>';
+            
+            Promise.all([api('/screenings'), api('/movies')]).then(function(results) {
+                var screenings = results[0];
+                var movies = results[1];
+                var movieMap = {};
+                movies.forEach(function(m) { movieMap[m.id] = m.title; });
+                
+                var canManage = user.role === 'MANAGER' || user.role === 'ADMIN';
+                var canBook = user.role === 'CUSTOMER' || user.role === 'ADMIN';
+                
+                var html = '<div class="section-header"><h2>📅 Proiezioni</h2>';
+                if (canManage) html += '<button class="btn btn-small" onclick="showAddProiezione()">+ Aggiungi</button>';
+                html += '</div>';
+                
+                screenings.forEach(function(s) {
+                    var date = new Date(s.startTime).toLocaleString('it-IT');
+                    html += '<div class="list-item"><div>';
+                    html += '<h3>' + (movieMap[s.movieId] || 'Film') + '</h3>';
+                    html += '<p>📅 ' + date + ' | 💰 €' + s.ticketPrice + ' | 🏛️ Sala ' + s.cinemaHallId + '</p>';
+                    html += '</div><div>';
+                    if (canBook && s.isActive) html += '<button class="btn btn-success btn-small" onclick="prenota(' + s.id + ',' + s.cinemaHallId + ',' + s.ticketPrice + ')">🎟️ Prenota</button> ';
+                    if (canManage) html += '<button class="btn btn-danger btn-small" onclick="deleteProiezione(' + s.id + ')">🗑️</button>';
+                    html += '</div></div>';
+                });
+                
+                document.getElementById('content').innerHTML = html;
+            });
+        }
+
+        // === PRENOTA ===
+        function prenota(screeningId, hallId, price) {
+            var n = prompt('Quanti posti vuoi prenotare? (1-5)', '2');
+            if (!n) return;
+            n = parseInt(n);
+            if (n < 1 || n > 5) { alert('Inserisci un numero tra 1 e 5'); return; }
+            
+            var seatIds = [];
+            var base = (hallId - 1) * 150 + 50 + Math.floor(Math.random() * 50);
+            for (var i = 0; i < n; i++) seatIds.push(base + i);
+            
+            api('/bookings', {
+                method: 'POST',
+                body: JSON.stringify({ customerId: user.id, screeningId: screeningId, seatIds: seatIds })
+            }).then(function(data) {
+                if (data.bookingCode) {
+                    alert('✅ Prenotazione confermata!\n\nCodice: ' + data.bookingCode + '\nPosti: ' + n + '\nTotale: €' + data.totalAmount);
+                    loadPrenotazioni();
+                } else {
+                    alert('Errore: ' + (data.message || 'Prenotazione fallita'));
+                }
+            });
+        }
+
+        // === LOAD PRENOTAZIONI ===
+        function loadPrenotazioni() {
+            document.getElementById('content').innerHTML = '<p>Caricamento...</p>';
+            
+            var endpoint = user.role === 'ADMIN' ? '/bookings' : '/bookings/customer/' + user.id;
+            api(endpoint).then(function(bookings) {
+                var html = '<div class="section-header"><h2>🎟️ ' + (user.role === 'ADMIN' ? 'Tutte le Prenotazioni' : 'Le Mie Prenotazioni') + '</h2></div>';
+                
+                if (bookings.length === 0) {
+                    html += '<p>Nessuna prenotazione</p>';
+                } else {
+                    bookings.forEach(function(b) {
+                        var statusClass = b.status === 'CONFIRMED' ? 'btn-success' : 'btn-danger';
+                        html += '<div class="list-item"><div>';
+                        html += '<h3>Codice: ' + b.bookingCode + '</h3>';
+                        html += '<p>💰 €' + b.totalAmount + ' | 📊 ' + b.status + '</p>';
+                        html += '</div><div>';
+                        if (b.status === 'CONFIRMED') html += '<button class="btn btn-danger btn-small" onclick="cancellaPrenotazione(' + b.id + ')">❌ Cancella</button>';
+                        html += '</div></div>';
+                    });
+                }
+                
+                document.getElementById('content').innerHTML = html;
+            });
+        }
+
+        function cancellaPrenotazione(id) {
+            if (!confirm('Cancellare questa prenotazione?')) return;
+            api('/bookings/' + id + '/cancel', { method: 'PUT' }).then(function() {
+                alert('Prenotazione cancellata');
+                loadPrenotazioni();
+            });
+        }
+
+        // === LOAD RECENSIONI ===
+        function loadRecensioni() {
+            document.getElementById('content').innerHTML = '<p>Caricamento...</p>';
+            
+            api('/reviews').then(function(reviews) {
+                var html = '<div class="section-header"><h2>⭐ Recensioni</h2>';
+                html += '<button class="btn btn-small" onclick="showAddRecensione()">+ Scrivi Recensione</button></div>';
+                
+                if (reviews.length === 0) {
+                    html += '<p>Nessuna recensione</p>';
+                } else {
+                    reviews.forEach(function(r) {
+                        html += '<div class="list-item"><div>';
+                        html += '<h3>⭐ ' + r.rating + '/5 - Film #' + r.movieId + '</h3>';
+                        html += '<p>' + (r.comment || '') + '</p>';
+                        html += '</div><div>';
+                        if (r.customerId === user.id || user.role === 'ADMIN') {
+                            html += '<button class="btn btn-danger btn-small" onclick="deleteRecensione(' + r.id + ')">🗑️</button>';
+                        }
+                        html += '</div></div>';
+                    });
+                }
+                
+                document.getElementById('content').innerHTML = html;
+            });
+        }
+
+        function deleteRecensione(id) {
+            if (!confirm('Eliminare questa recensione?')) return;
+            api('/reviews/' + id, { method: 'DELETE' }).then(function() { loadRecensioni(); });
+        }
+
+        // === LOAD SALE ===
+        function loadSale() {
+            document.getElementById('content').innerHTML = '<p>Caricamento...</p>';
+            
+            api('/cinema-halls').then(function(halls) {
+                var html = '<div class="section-header"><h2>🏛️ Sale Cinematografiche</h2>';
+                html += '<button class="btn btn-small" onclick="showAddSala()">+ Aggiungi Sala</button></div>';
+                html += '<div class="grid">';
+                
+                halls.forEach(function(h) {
+                    html += '<div class="card"><div class="card-body">';
+                    html += '<h3>' + h.name + '</h3>';
+                    html += '<p>📍 File: ' + h.totalRows + ' | Posti/fila: ' + h.seatsPerRow + '</p>';
+                    html += '<p>💺 Totale: ' + h.totalSeats + ' posti</p>';
+                    html += '<div class="card-actions">';
+                    html += '<button class="btn btn-danger btn-small" onclick="deleteSala(' + h.id + ')">🗑️</button>';
+                    html += '</div></div></div>';
+                });
+                
+                html += '</div>';
+                document.getElementById('content').innerHTML = html;
+            });
+        }
+
+        function deleteSala(id) {
+            if (!confirm('Eliminare questa sala?')) return;
+            api('/cinema-halls/' + id, { method: 'DELETE' }).then(function() { loadSale(); });
+        }
+
+        // === ADMIN PANEL ===
+        function loadAdmin() {
+            document.getElementById('content').innerHTML = '<p>Caricamento...</p>';
+            
+            Promise.all([
+                api('/movies'), api('/screenings'), api('/cinema-halls'), api('/bookings'), api('/reviews')
+            ]).then(function(results) {
+                var html = '<div class="section-header"><h2>👑 Pannello Admin</h2></div>';
+                html += '<div class="stats-grid">';
+                html += '<div class="stat-card"><h3>🎬 Film</h3><div class="number">' + results[0].length + '</div></div>';
+                html += '<div class="stat-card"><h3>📅 Proiezioni</h3><div class="number">' + results[1].length + '</div></div>';
+                html += '<div class="stat-card"><h3>🏛️ Sale</h3><div class="number">' + results[2].length + '</div></div>';
+                html += '<div class="stat-card"><h3>🎟️ Prenotazioni</h3><div class="number">' + results[3].length + '</div></div>';
+                html += '<div class="stat-card"><h3>⭐ Recensioni</h3><div class="number">' + results[4].length + '</div></div>';
+                html += '</div>';
+                
+                html += '<div class="list-item"><div><h3>ℹ️ Permessi Admin</h3>';
+                html += '<p>✅ Gestione completa di Film, Proiezioni, Sale, Prenotazioni e Recensioni</p>';
+                html += '</div></div>';
+                
+                document.getElementById('content').innerHTML = html;
+            });
+        }
+
+        // === MODALS ===
+        function openModal(html) {
+            document.getElementById('modal-body').innerHTML = html;
+            document.getElementById('modal').classList.remove('hidden');
+        }
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        function showAddFilm() {
+            openModal('<h2>Aggiungi Film</h2>' +
+                '<div class="form-group"><label>Titolo</label><input type="text" id="film-title"></div>' +
+                '<div class="form-group"><label>Genere</label><input type="text" id="film-genre"></div>' +
+                '<div class="form-group"><label>Durata (min)</label><input type="number" id="film-duration" value="120"></div>' +
+                '<button class="btn" onclick="saveFilm()">Salva</button>');
+        }
+        function saveFilm() {
+            api('/movies', {
+                method: 'POST',
+                body: JSON.stringify({
+                    title: document.getElementById('film-title').value,
+                    genre: document.getElementById('film-genre').value,
+                    duration: parseInt(document.getElementById('film-duration').value),
+                    description: 'Nuovo film'
+                })
+            }).then(function() { closeModal(); loadFilm(); });
+        }
+        function deleteFilm(id) {
+            if (!confirm('Eliminare questo film?')) return;
+            api('/movies/' + id, { method: 'DELETE' }).then(function() { loadFilm(); });
+        }
+
+        function showAddProiezione() {
+            Promise.all([api('/movies'), api('/cinema-halls')]).then(function(results) {
+                var movies = results[0], halls = results[1];
+                var moviesOpts = movies.map(function(m) { return '<option value="' + m.id + '">' + m.title + '</option>'; }).join('');
+                var hallsOpts = halls.map(function(h) { return '<option value="' + h.id + '">' + h.name + '</option>'; }).join('');
+                
+                openModal('<h2>Aggiungi Proiezione</h2>' +
+                    '<div class="form-group"><label>Film</label><select id="scr-movie">' + moviesOpts + '</select></div>' +
+                    '<div class="form-group"><label>Sala</label><select id="scr-hall">' + hallsOpts + '</select></div>' +
+                    '<div class="form-group"><label>Data/Ora</label><input type="datetime-local" id="scr-datetime"></div>' +
+                    '<div class="form-group"><label>Prezzo €</label><input type="number" id="scr-price" value="10" step="0.5"></div>' +
+                    '<button class="btn" onclick="saveProiezione()">Salva</button>');
+            });
+        }
+        function saveProiezione() {
+            var dt = new Date(document.getElementById('scr-datetime').value);
+            var end = new Date(dt.getTime() + 2*60*60*1000);
+            api('/screenings', {
+                method: 'POST',
+                body: JSON.stringify({
+                    movieId: parseInt(document.getElementById('scr-movie').value),
+                    cinemaHallId: parseInt(document.getElementById('scr-hall').value),
+                    startTime: dt.toISOString(),
+                    endTime: end.toISOString(),
+                    ticketPrice: parseFloat(document.getElementById('scr-price').value)
+                })
+            }).then(function() { closeModal(); loadProiezioni(); });
+        }
+        function deleteProiezione(id) {
+            if (!confirm('Eliminare questa proiezione?')) return;
+            api('/screenings/' + id, { method: 'DELETE' }).then(function() { loadProiezioni(); });
+        }
+
+        function showAddRecensione() {
+            api('/movies').then(function(movies) {
+                var opts = movies.map(function(m) { return '<option value="' + m.id + '">' + m.title + '</option>'; }).join('');
+                openModal('<h2>Scrivi Recensione</h2>' +
+                    '<div class="form-group"><label>Film</label><select id="rev-movie">' + opts + '</select></div>' +
+                    '<div class="form-group"><label>Voto (1-5)</label><select id="rev-rating"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></div>' +
+                    '<div class="form-group"><label>Commento</label><textarea id="rev-comment" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd" rows="3"></textarea></div>' +
+                    '<button class="btn" onclick="saveRecensione()">Pubblica</button>');
+            });
+        }
+        function saveRecensione() {
+            api('/reviews', {
+                method: 'POST',
+                body: JSON.stringify({
+                    movieId: parseInt(document.getElementById('rev-movie').value),
+                    customerId: user.id,
+                    rating: parseInt(document.getElementById('rev-rating').value),
+                    comment: document.getElementById('rev-comment').value
+                })
+            }).then(function() { closeModal(); loadRecensioni(); });
+        }
+
+        function showAddSala() {
+            openModal('<h2>Aggiungi Sala</h2>' +
+                '<div class="form-group"><label>Nome</label><input type="text" id="sala-name" placeholder="Sala 1 - IMAX"></div>' +
+                '<div class="form-group"><label>Numero File</label><input type="number" id="sala-rows" value="10"></div>' +
+                '<div class="form-group"><label>Posti per Fila</label><input type="number" id="sala-seats" value="15"></div>' +
+                '<button class="btn" onclick="saveSala()">Salva</button>');
+        }
+        function saveSala() {
+            api('/cinema-halls', {
+                method: 'POST',
+                body: JSON.stringify({
+                    name: document.getElementById('sala-name').value,
+                    totalRows: parseInt(document.getElementById('sala-rows').value),
+                    seatsPerRow: parseInt(document.getElementById('sala-seats').value),
+                    description: 'Nuova sala',
+                    managerId: user.id
+                })
+            }).then(function() { closeModal(); loadSale(); });
+        }
+    </script>
+</body>
+</html>
