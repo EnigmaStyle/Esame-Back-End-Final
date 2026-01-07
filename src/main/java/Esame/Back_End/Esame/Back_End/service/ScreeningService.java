@@ -5,11 +5,9 @@ import Esame.Back_End.Esame.Back_End.dto.ScreeningSearchDTO;
 import Esame.Back_End.Esame.Back_End.exception.BadRequestException;
 import Esame.Back_End.Esame.Back_End.exception.ResourceNotFoundException;
 import Esame.Back_End.Esame.Back_End.model.CinemaHall;
-import Esame.Back_End.Esame.Back_End.model.Customer;
 import Esame.Back_End.Esame.Back_End.model.Movie;
 import Esame.Back_End.Esame.Back_End.model.Screening;
 import Esame.Back_End.Esame.Back_End.repository.CinemaHallRepository;
-import Esame.Back_End.Esame.Back_End.repository.CustomerRepository;
 import Esame.Back_End.Esame.Back_End.repository.MovieRepository;
 import Esame.Back_End.Esame.Back_End.repository.ScreeningRepository;
 import org.slf4j.Logger;
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,25 +23,17 @@ import java.util.stream.Collectors;
 public class ScreeningService {
     
     private static final Logger logger = LoggerFactory.getLogger(ScreeningService.class);
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     
     private final ScreeningRepository screeningRepository;
     private final MovieRepository movieRepository;
     private final CinemaHallRepository cinemaHallRepository;
-    private final CustomerRepository customerRepository;
-    private final MailgunService mailgunService;
     
     public ScreeningService(ScreeningRepository screeningRepository, MovieRepository movieRepository,
-                           CinemaHallRepository cinemaHallRepository, CustomerRepository customerRepository,
-                           MailgunService mailgunService) {
+                           CinemaHallRepository cinemaHallRepository) {
         this.screeningRepository = screeningRepository;
         this.movieRepository = movieRepository;
         this.cinemaHallRepository = cinemaHallRepository;
-        this.customerRepository = customerRepository;
-        this.mailgunService = mailgunService;
     }
-    
     
     public List<ScreeningDTO> getAllScreenings() {
         return screeningRepository.findAll().stream()
@@ -85,59 +74,14 @@ public class ScreeningService {
         
         Screening saved = screeningRepository.save(screening);
         
-        // Send notification emails to all active customers via Mailgun
-        notifyCustomersAboutNewScreening(saved, movie, hall);
+        // NOTA: Le email vengono inviate SOLO quando un cliente effettua una prenotazione,
+        // non quando viene creata una nuova proiezione.
+        // Vedi BookingService.sendBookingConfirmationEmail()
+        
+        logger.info("Created new screening for movie '{}' in hall '{}'", 
+            movie.getTitle(), hall.getName());
         
         return convertToDTO(saved);
-    }
-    
-    /**
-     * Sends email notifications to all active customers about a new screening via Mailgun API
-     */
-    private void notifyCustomersAboutNewScreening(Screening screening, Movie movie, CinemaHall hall) {
-        try {
-            List<Customer> activeCustomers = customerRepository.findByIsActiveTrue();
-            
-            if (activeCustomers.isEmpty()) {
-                logger.info("No active customers to notify about new screening");
-                return;
-            }
-            
-            String movieTitle = movie.getTitle();
-            String screeningDate = screening.getStartTime().toLocalDate().format(DATE_FORMATTER);
-            String screeningTime = screening.getStartTime().toLocalTime().format(TIME_FORMATTER);
-            String cinemaHallName = hall.getName();
-            String ticketPrice = screening.getTicketPrice().toString();
-            
-            int successCount = 0;
-            int failCount = 0;
-            
-            for (Customer customer : activeCustomers) {
-                String customerName = customer.getFirstName() + " " + customer.getLastName();
-                
-                boolean sent = mailgunService.sendNewScreeningNotification(
-                    customer.getEmail(),
-                    customerName,
-                    movieTitle,
-                    screeningDate,
-                    screeningTime,
-                    cinemaHallName,
-                    ticketPrice
-                );
-                
-                if (sent) {
-                    successCount++;
-                } else {
-                    failCount++;
-                }
-            }
-            
-            logger.info("New screening notifications sent: {} successful, {} failed", successCount, failCount);
-            
-        } catch (Exception e) {
-            // Log error but don't fail the screening creation
-            logger.error("Failed to send new screening notifications: {}", e.getMessage());
-        }
     }
     
     @Transactional
@@ -212,4 +156,3 @@ public class ScreeningService {
         return dto;
     }
 }
-

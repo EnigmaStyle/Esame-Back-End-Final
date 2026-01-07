@@ -1,5 +1,6 @@
 package Esame.Back_End.Esame.Back_End.security;
 
+import Esame.Back_End.Esame.Back_End.service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,10 +19,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtUtil jwtUtil;
+    private final TokenBlacklistService tokenBlacklistService;
     
-    public JwtAuthenticationFilter(UserDetailsServiceImpl userDetailsService, JwtUtil jwtUtil) {
+    public JwtAuthenticationFilter(UserDetailsServiceImpl userDetailsService, JwtUtil jwtUtil,
+                                   TokenBlacklistService tokenBlacklistService) {
         this.userDetailsService = userDetailsService;
         this.jwtUtil = jwtUtil;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
     
     @Override
@@ -36,6 +40,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
             try {
+                // Verifica se il token è nella blacklist PRIMA di ogni altra operazione
+                if (tokenBlacklistService.isTokenBlacklisted(jwt)) {
+                    logger.warn("Attempted use of blacklisted token");
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+                
                 username = jwtUtil.extractUsername(jwt);
             } catch (Exception e) {
                 logger.error("JWT token parsing error", e);
@@ -56,4 +67,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-

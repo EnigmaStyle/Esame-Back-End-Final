@@ -3,21 +3,26 @@ package Esame.Back_End.Esame.Back_End.service;
 import Esame.Back_End.Esame.Back_End.dto.BookingDTO;
 import Esame.Back_End.Esame.Back_End.exception.BadRequestException;
 import Esame.Back_End.Esame.Back_End.exception.ResourceNotFoundException;
+import Esame.Back_End.Esame.Back_End.model.BookedSeat;
 import Esame.Back_End.Esame.Back_End.model.Booking;
 import Esame.Back_End.Esame.Back_End.model.Customer;
 import Esame.Back_End.Esame.Back_End.model.Screening;
 import Esame.Back_End.Esame.Back_End.model.Seat;
+import Esame.Back_End.Esame.Back_End.repository.BookedSeatRepository;
 import Esame.Back_End.Esame.Back_End.repository.BookingRepository;
 import Esame.Back_End.Esame.Back_End.repository.CustomerRepository;
 import Esame.Back_End.Esame.Back_End.repository.ScreeningRepository;
 import Esame.Back_End.Esame.Back_End.repository.SeatRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,15 +38,17 @@ public class BookingService {
     private final CustomerRepository customerRepository;
     private final ScreeningRepository screeningRepository;
     private final SeatRepository seatRepository;
+    private final BookedSeatRepository bookedSeatRepository;
     private final MailgunService mailgunService;
     
     public BookingService(BookingRepository bookingRepository, CustomerRepository customerRepository,
                          ScreeningRepository screeningRepository, SeatRepository seatRepository,
-                         MailgunService mailgunService) {
+                         BookedSeatRepository bookedSeatRepository, MailgunService mailgunService) {
         this.bookingRepository = bookingRepository;
         this.customerRepository = customerRepository;
         this.screeningRepository = screeningRepository;
         this.seatRepository = seatRepository;
+        this.bookedSeatRepository = bookedSeatRepository;
         this.mailgunService = mailgunService;
     }
     
@@ -69,7 +76,14 @@ public class BookingService {
             .collect(Collectors.toList());
     }
     
-    @Transactional
+    /**
+     * Crea una nuova prenotazione con DOPPIA PROTEZIONE contro race condition:
+     * 
+     * 1. LOCKING PESSIMISTICO: Serializza l'accesso ai posti durante la transazione
+     * 2. VINCOLO UNIQUE DB: La tabella booked_seats ha un vincolo UNIQUE su (screening_id, seat_id)
+     *    che impedisce fisicamente la doppia prenotazione anche se il lock fallisce
+     */
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public BookingDTO createBooking(BookingDTO dto) {
         Customer customer = customerRepository.findById(dto.getCustomerId())
             .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + dto.getCustomerId()));
@@ -81,25 +95,35 @@ public class BookingService {
             throw new BadRequestException("Screening is not active");
         }
         
-        Set<Seat> seats = new java.util.HashSet<>(seatRepository.findSeatsByIdsAndHall(dto.getSeatIds(), screening.getCinemaHall().getId()));
+        // STEP 1: Verifica veloce se i posti sono già prenotati (ottimizzazione)
+        if (bookedSeatRepository.existsAnyBookedSeatForScreening(screening.getId(), dto.getSeatIds())) {
+            throw new BadRequestException("Uno o più posti sono già stati prenotati da un altro utente");
+        }
+        
+        // STEP 2: LOCK PESSIMISTICO sui posti richiesti
+        Set<Seat> seats = new java.util.HashSet<>(
+            seatRepository.findSeatsByIdsAndHallWithLock(dto.getSeatIds(), screening.getCinemaHall().getId())
+        );
         
         if (seats.size() != dto.getSeatIds().size()) {
             throw new BadRequestException("Some seats are invalid or do not belong to this cinema hall");
         }
         
-        // Check if seats are already booked
-        List<Seat> availableSeats = seatRepository.findAvailableSeatsForScreening(
+        // STEP 3: Verifica disponibilità con LOCK
+        List<Seat> availableSeats = seatRepository.findAvailableSeatsForScreeningWithLock(
             screening.getCinemaHall().getId(), screening.getId());
         Set<Long> availableSeatIds = availableSeats.stream().map(Seat::getId).collect(Collectors.toSet());
         
         for (Long seatId : dto.getSeatIds()) {
             if (!availableSeatIds.contains(seatId)) {
-                throw new BadRequestException("Seat with id " + seatId + " is already booked");
+                logger.warn("Attempted to book unavailable seat {} for screening {}", seatId, screening.getId());
+                throw new BadRequestException("Il posto con id " + seatId + " è già stato prenotato da un altro utente");
             }
         }
         
         BigDecimal totalAmount = screening.getTicketPrice().multiply(BigDecimal.valueOf(seats.size()));
         
+        // STEP 4: Crea la prenotazione
         Booking booking = Booking.builder()
             .customer(customer)
             .screening(screening)
@@ -108,16 +132,41 @@ public class BookingService {
             .build();
         
         booking.setSeats(seats);
-        Booking saved = bookingRepository.save(booking);
         
-        // Send confirmation email via Mailgun
-        sendBookingConfirmationEmail(saved, customer, screening, seats);
-        
-        return convertToDTO(saved);
+        try {
+            Booking saved = bookingRepository.save(booking);
+            
+            // STEP 5: Registra i posti nella tabella booked_seats (VINCOLO UNIQUE)
+            // Se un altro utente ha già prenotato, il database lancia DataIntegrityViolationException
+            List<BookedSeat> bookedSeats = new ArrayList<>();
+            for (Seat seat : seats) {
+                BookedSeat bookedSeat = BookedSeat.builder()
+                    .booking(saved)
+                    .screening(screening)
+                    .seat(seat)
+                    .build();
+                bookedSeats.add(bookedSeat);
+            }
+            bookedSeatRepository.saveAll(bookedSeats);
+            
+            logger.info("Booking {} created successfully for customer {} - {} seats", 
+                saved.getBookingCode(), customer.getEmail(), seats.size());
+            
+            // Invia email di conferma SOLO al cliente che ha effettuato la prenotazione
+            sendBookingConfirmationEmail(saved, customer, screening, seats);
+            
+            return convertToDTO(saved);
+            
+        } catch (DataIntegrityViolationException e) {
+            // Il vincolo UNIQUE ha catturato una race condition
+            logger.error("Race condition detected: seat already booked for screening {}", screening.getId());
+            throw new BadRequestException("Uno o più posti sono stati prenotati da un altro utente. Riprova.");
+        }
     }
     
     /**
-     * Sends booking confirmation email via Mailgun API
+     * Invia email di conferma prenotazione via Mailgun API
+     * SOLO al cliente che ha effettuato la prenotazione
      */
     private void sendBookingConfirmationEmail(Booking booking, Customer customer, Screening screening, Set<Seat> seats) {
         try {
@@ -143,7 +192,6 @@ public class BookingService {
             
             logger.info("Booking confirmation email sent to: {}", customer.getEmail());
         } catch (Exception e) {
-            // Log error but don't fail the booking
             logger.error("Failed to send booking confirmation email: {}", e.getMessage());
         }
     }
@@ -156,14 +204,18 @@ public class BookingService {
         booking.setStatus(Booking.BookingStatus.CANCELLED);
         Booking updated = bookingRepository.save(booking);
         
-        // Send cancellation email via Mailgun
+        // Non eliminiamo i BookedSeat per mantenere lo storico,
+        // ma la query di disponibilità filtra per status = 'CONFIRMED'
+        
+        // Invia email di cancellazione SOLO al cliente proprietario della prenotazione
         sendBookingCancellationEmail(updated);
         
         return convertToDTO(updated);
     }
     
     /**
-     * Sends booking cancellation email via Mailgun API
+     * Invia email di cancellazione prenotazione via Mailgun API
+     * SOLO al cliente proprietario della prenotazione
      */
     private void sendBookingCancellationEmail(Booking booking) {
         try {
@@ -180,7 +232,6 @@ public class BookingService {
             
             logger.info("Booking cancellation email sent to: {}", customer.getEmail());
         } catch (Exception e) {
-            // Log error but don't fail the cancellation
             logger.error("Failed to send booking cancellation email: {}", e.getMessage());
         }
     }
@@ -212,4 +263,3 @@ public class BookingService {
         return dto;
     }
 }
-
