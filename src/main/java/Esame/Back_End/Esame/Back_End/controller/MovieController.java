@@ -10,11 +10,16 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+
+/**
+ * Controller REST per la gestione dei film.
+ * Le eccezioni sono gestite dal GlobalExceptionHandler.
+ */
 
 @RestController
 @RequestMapping("/api/movies")
-@CrossOrigin(origins = "*")
 public class MovieController {
     
     private final MovieService movieService;
@@ -66,16 +71,12 @@ public class MovieController {
     
     @PostMapping("/{id}/poster")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<MovieDTO> uploadMoviePoster(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
-        try {
-            String imageUrl = cloudinaryService.uploadMoviePoster(file);
-            MovieDTO dto = new MovieDTO();
-            dto.setPosterUrl(imageUrl);
-            MovieDTO updated = movieService.updateMovie(id, dto);
-            return ResponseEntity.ok(updated);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<MovieDTO> uploadMoviePoster(@PathVariable Long id, @RequestParam("file") MultipartFile file) throws IOException {
+        String imageUrl = cloudinaryService.uploadMoviePoster(file);
+        MovieDTO dto = new MovieDTO();
+        dto.setPosterUrl(imageUrl);
+        MovieDTO updated = movieService.updateMovie(id, dto);
+        return ResponseEntity.ok(updated);
     }
 }
 

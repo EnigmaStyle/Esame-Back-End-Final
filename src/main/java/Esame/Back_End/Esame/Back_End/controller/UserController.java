@@ -5,15 +5,15 @@ import Esame.Back_End.Esame.Back_End.model.User;
 import Esame.Back_End.Esame.Back_End.service.CloudinaryService;
 import Esame.Back_End.Esame.Back_End.service.UserService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "*")
 public class UserController {
     
     private final UserService userService;
@@ -40,14 +40,10 @@ public class UserController {
     
     @PostMapping("/me/profile-image")
     @PreAuthorize("hasRole('CUSTOMER') or hasRole('MANAGER') or hasRole('ADMIN')")
-    public ResponseEntity<User> uploadProfileImage(@RequestParam("file") MultipartFile file) {
-        try {
-            String imageUrl = cloudinaryService.uploadProfileImage(file);
-            User updated = userService.updateProfileImage(imageUrl);
-            return ResponseEntity.ok(updated);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<User> uploadProfileImage(@RequestParam("file") MultipartFile file) throws IOException {
+        String imageUrl = cloudinaryService.uploadProfileImage(file);
+        User updated = userService.updateProfileImage(imageUrl);
+        return ResponseEntity.ok(updated);
     }
 }
 

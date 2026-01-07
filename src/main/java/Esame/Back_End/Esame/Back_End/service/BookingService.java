@@ -204,8 +204,12 @@ public class BookingService {
         booking.setStatus(Booking.BookingStatus.CANCELLED);
         Booking updated = bookingRepository.save(booking);
         
-        // Non eliminiamo i BookedSeat per mantenere lo storico,
-        // ma la query di disponibilità filtra per status = 'CONFIRMED'
+        // IMPORTANTE: Elimina i BookedSeat per consentire la ri-prenotazione dei posti.
+        // Il vincolo UNIQUE su (screening_id, seat_id) impedirebbe nuove prenotazioni
+        // se i record non venissero rimossi. Lo storico è preservato nella tabella booking
+        // con status CANCELLED e la relazione booking_seats tramite @ManyToMany.
+        bookedSeatRepository.deleteByBookingId(id);
+        logger.info("BookedSeats deleted for cancelled booking {}", booking.getBookingCode());
         
         // Invia email di cancellazione SOLO al cliente proprietario della prenotazione
         sendBookingCancellationEmail(updated);

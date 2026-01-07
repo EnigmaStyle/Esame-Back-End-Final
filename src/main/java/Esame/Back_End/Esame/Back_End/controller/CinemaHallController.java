@@ -12,7 +12,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/cinema-halls")
-@CrossOrigin(origins = "*")
 public class CinemaHallController {
     
     private final CinemaHallService cinemaHallService;

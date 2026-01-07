@@ -5,6 +5,7 @@ import Esame.Back_End.Esame.Back_End.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +14,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * DataLoader per popolare il database con dati di test.
+ * ATTENZIONE: Attivo SOLO con profilo "dev" per evitare di creare
+ * utenti con password note in ambiente di produzione (OWASP security).
+ * 
+ * Per attivare: -Dspring.profiles.active=dev
+ * oppure: SPRING_PROFILES_ACTIVE=dev
+ */
 @Component
+@Profile("dev")
 public class DataLoader implements CommandLineRunner {
     
     private static final Logger logger = LoggerFactory.getLogger(DataLoader.class);
