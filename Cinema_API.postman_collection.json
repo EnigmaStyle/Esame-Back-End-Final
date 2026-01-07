@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "Cinema Multi-Sala API",
-		"description": "API completa per la gestione di un cinema multi-sala.\n\n## 🚀 Quick Start\n1. Avvia l'applicazione: `./mvnw spring-boot:run`\n2. Esegui **Login Customer** (o Admin/Manager)\n3. Il token JWT viene salvato automaticamente\n4. Testa tutte le altre API!\n\n## 👥 Utenti Pre-caricati\n- **CUSTOMER**: customer@example.com / customer123\n- **MANAGER**: manager@cinema.com / manager123\n- **ADMIN**: admin@cinema.com / admin123\n\n## 🔐 Permessi\n- **ADMIN**: Accesso completo a tutto\n- **MANAGER**: Gestione Film, Proiezioni, Sale\n- **CUSTOMER**: Prenotazioni e Recensioni",
+		"description": "API completa per la gestione di un cinema multi-sala.\n\n## 🚀 Quick Start\n1. Avvia l'applicazione: `./mvnw spring-boot:run -Dspring.profiles.active=dev`\n2. Esegui **Login Customer** (o Admin/Manager)\n3. Il token JWT viene salvato automaticamente\n4. Testa tutte le altre API!\n\n## ⚠️ IMPORTANTE: Profilo Dev\nGli utenti di test vengono creati **solo** con profilo `dev` attivo.\nSenza il profilo dev, dovrai registrarti manualmente.\n\n## 👥 Utenti Pre-caricati (solo profilo dev)\n- **CUSTOMER**: customer@example.com / customer123\n- **MANAGER**: manager@cinema.com / manager123\n- **ADMIN**: admin@cinema.com / admin123\n\n## 🔐 Permessi\n- **ADMIN**: Accesso completo a tutto\n- **MANAGER**: Gestione Film, Proiezioni, Sale\n- **CUSTOMER**: Prenotazioni e Recensioni\n\n## 🧪 Test\nIl progetto include 10 test unitari. Esegui con:\n`./mvnw test`",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
@@ -54,7 +54,8 @@
 							"raw": "{{baseUrl}}/api/auth/login",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "auth", "login"]
-						}
+						},
+						"description": "Login come CUSTOMER. Richiede profilo dev attivo per gli utenti pre-caricati."
 					}
 				},
 				{
@@ -86,7 +87,8 @@
 							"raw": "{{baseUrl}}/api/auth/login",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "auth", "login"]
-						}
+						},
+						"description": "Login come MANAGER. Può gestire film, proiezioni e sale."
 					}
 				},
 				{
@@ -118,7 +120,36 @@
 							"raw": "{{baseUrl}}/api/auth/login",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "auth", "login"]
+						},
+						"description": "Login come ADMIN. Accesso completo a tutte le funzionalità."
+					}
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    pm.collectionVariables.set(\"token\", \"\");",
+									"    pm.collectionVariables.set(\"userId\", \"\");",
+									"    console.log(\"✅ Logged out! Token cleared.\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
 						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "logout"]
+						},
+						"description": "Logout e invalidazione del token JWT. Il token viene aggiunto alla blacklist."
 					}
 				},
 				{
@@ -132,6 +163,7 @@
 									"    var jsonData = pm.response.json();",
 									"    pm.collectionVariables.set(\"token\", jsonData.token);",
 									"    pm.collectionVariables.set(\"userId\", jsonData.id);",
+									"    console.log(\"✅ Registered and logged in! User: \" + jsonData.email);",
 									"}"
 								],
 								"type": "text/javascript"
@@ -149,7 +181,8 @@
 							"raw": "{{baseUrl}}/api/auth/register",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "auth", "register"]
-						}
+						},
+						"description": "Registra un nuovo utente. La password deve rispettare la policy: min 8 caratteri, maiuscola, minuscola, numero, carattere speciale."
 					}
 				}
 			]
@@ -166,7 +199,8 @@
 							"raw": "{{baseUrl}}/api/users/me",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "users", "me"]
-						}
+						},
+						"description": "Ottieni i dati del profilo dell'utente corrente."
 					}
 				},
 				{
@@ -185,7 +219,8 @@
 							"raw": "{{baseUrl}}/api/users/me",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "users", "me"]
-						}
+						},
+						"description": "Aggiorna il profilo dell'utente corrente."
 					}
 				},
 				{
@@ -201,7 +236,8 @@
 							"raw": "{{baseUrl}}/api/users/me/profile-image",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "users", "me", "profile-image"]
-						}
+						},
+						"description": "Carica un'immagine profilo. L'immagine viene salvata su Cloudinary."
 					}
 				}
 			]
@@ -217,7 +253,8 @@
 							"raw": "{{baseUrl}}/api/movies",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "movies"]
-						}
+						},
+						"description": "Lista tutti i film. Endpoint pubblico."
 					}
 				},
 				{
@@ -228,7 +265,8 @@
 							"raw": "{{baseUrl}}/api/movies/1",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "movies", "1"]
-						}
+						},
+						"description": "Dettagli di un film specifico. Endpoint pubblico."
 					}
 				},
 				{
@@ -239,7 +277,8 @@
 							"raw": "{{baseUrl}}/api/movies/genre/Sci-Fi",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "movies", "genre", "Sci-Fi"]
-						}
+						},
+						"description": "Film filtrati per genere. Endpoint pubblico."
 					}
 				},
 				{
@@ -258,7 +297,8 @@
 							"raw": "{{baseUrl}}/api/movies",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "movies"]
-						}
+						},
+						"description": "Crea un nuovo film. Richiede ruolo MANAGER o ADMIN."
 					}
 				},
 				{
@@ -277,7 +317,8 @@
 							"raw": "{{baseUrl}}/api/movies/1",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "movies", "1"]
-						}
+						},
+						"description": "Aggiorna un film esistente. Richiede ruolo MANAGER o ADMIN."
 					}
 				},
 				{
@@ -289,7 +330,8 @@
 							"raw": "{{baseUrl}}/api/movies/9",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "movies", "9"]
-						}
+						},
+						"description": "Elimina un film. Richiede ruolo MANAGER o ADMIN."
 					}
 				},
 				{
@@ -305,7 +347,8 @@
 							"raw": "{{baseUrl}}/api/movies/1/poster",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "movies", "1", "poster"]
-						}
+						},
+						"description": "Carica la locandina di un film. L'immagine viene salvata su Cloudinary."
 					}
 				}
 			]
@@ -321,7 +364,8 @@
 							"raw": "{{baseUrl}}/api/cinema-halls",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "cinema-halls"]
-						}
+						},
+						"description": "Lista tutte le sale cinematografiche. Endpoint pubblico."
 					}
 				},
 				{
@@ -332,7 +376,8 @@
 							"raw": "{{baseUrl}}/api/cinema-halls/1",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "cinema-halls", "1"]
-						}
+						},
+						"description": "Dettagli di una sala specifica con i suoi posti. Endpoint pubblico."
 					}
 				},
 				{
@@ -351,7 +396,8 @@
 							"raw": "{{baseUrl}}/api/cinema-halls",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "cinema-halls"]
-						}
+						},
+						"description": "Crea una nuova sala cinematografica. Richiede ruolo MANAGER o ADMIN."
 					}
 				},
 				{
@@ -370,7 +416,8 @@
 							"raw": "{{baseUrl}}/api/cinema-halls/1",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "cinema-halls", "1"]
-						}
+						},
+						"description": "Aggiorna una sala esistente. Richiede ruolo MANAGER o ADMIN."
 					}
 				},
 				{
@@ -382,7 +429,8 @@
 							"raw": "{{baseUrl}}/api/cinema-halls/4",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "cinema-halls", "4"]
-						}
+						},
+						"description": "Elimina una sala cinematografica. Richiede ruolo MANAGER o ADMIN."
 					}
 				}
 			]
@@ -398,7 +446,8 @@
 							"raw": "{{baseUrl}}/api/screenings",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "screenings"]
-						}
+						},
+						"description": "Lista tutte le proiezioni. Endpoint pubblico."
 					}
 				},
 				{
@@ -409,7 +458,8 @@
 							"raw": "{{baseUrl}}/api/screenings/1",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "screenings", "1"]
-						}
+						},
+						"description": "Dettagli di una proiezione specifica. Endpoint pubblico."
 					}
 				},
 				{
@@ -425,7 +475,8 @@
 							"raw": "{{baseUrl}}/api/screenings/search",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "screenings", "search"]
-						}
+						},
+						"description": "Cerca proiezioni in un intervallo di date. Endpoint pubblico."
 					}
 				},
 				{
@@ -441,7 +492,8 @@
 							"raw": "{{baseUrl}}/api/screenings/search",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "screenings", "search"]
-						}
+						},
+						"description": "Cerca proiezioni per genere del film. Endpoint pubblico."
 					}
 				},
 				{
@@ -460,7 +512,8 @@
 							"raw": "{{baseUrl}}/api/screenings",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "screenings"]
-						}
+						},
+						"description": "Crea una nuova proiezione. Invia automaticamente email di notifica a tutti i clienti. Richiede ruolo MANAGER o ADMIN."
 					}
 				},
 				{
@@ -479,7 +532,8 @@
 							"raw": "{{baseUrl}}/api/screenings/1",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "screenings", "1"]
-						}
+						},
+						"description": "Aggiorna una proiezione esistente. Richiede ruolo MANAGER o ADMIN."
 					}
 				},
 				{
@@ -491,13 +545,15 @@
 							"raw": "{{baseUrl}}/api/screenings/50",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "screenings", "50"]
-						}
+						},
+						"description": "Elimina una proiezione. Richiede ruolo MANAGER o ADMIN."
 					}
 				}
 			]
 		},
 		{
 			"name": "🎟️ Bookings",
+			"description": "Gestione prenotazioni. La cancellazione di una prenotazione libera automaticamente i posti per nuove prenotazioni.",
 			"item": [
 				{
 					"name": "Get All Bookings (ADMIN/MANAGER)",
@@ -508,7 +564,8 @@
 							"raw": "{{baseUrl}}/api/bookings",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "bookings"]
-						}
+						},
+						"description": "Lista tutte le prenotazioni. Richiede ruolo ADMIN o MANAGER."
 					}
 				},
 				{
@@ -520,7 +577,21 @@
 							"raw": "{{baseUrl}}/api/bookings/1",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "bookings", "1"]
-						}
+						},
+						"description": "Dettagli di una prenotazione specifica."
+					}
+				},
+				{
+					"name": "Get Booking by Code",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings/code/BK123456789",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "bookings", "code", "BK123456789"]
+						},
+						"description": "Trova una prenotazione tramite il codice univoco."
 					}
 				},
 				{
@@ -532,7 +603,8 @@
 							"raw": "{{baseUrl}}/api/bookings/customer/{{userId}}",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "bookings", "customer", "{{userId}}"]
-						}
+						},
+						"description": "Lista le prenotazioni dell'utente corrente."
 					}
 				},
 				{
@@ -551,7 +623,8 @@
 							"raw": "{{baseUrl}}/api/bookings",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "bookings"]
-						}
+						},
+						"description": "Crea una nuova prenotazione. Invia automaticamente email di conferma. Protezione doppia contro race condition (locking + vincolo UNIQUE)."
 					}
 				},
 				{
@@ -563,7 +636,8 @@
 							"raw": "{{baseUrl}}/api/bookings/1/cancel",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "bookings", "1", "cancel"]
-						}
+						},
+						"description": "Cancella una prenotazione. I posti vengono liberati e tornano disponibili per nuove prenotazioni. Invia email di conferma cancellazione."
 					}
 				},
 				{
@@ -574,7 +648,8 @@
 							"raw": "{{baseUrl}}/api/bookings/screening/1/booked-seats",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "bookings", "screening", "1", "booked-seats"]
-						}
+						},
+						"description": "Conta i posti prenotati per una proiezione. Endpoint pubblico."
 					}
 				},
 				{
@@ -586,7 +661,8 @@
 							"raw": "{{baseUrl}}/api/bookings/screening/1/revenue",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "bookings", "screening", "1", "revenue"]
-						}
+						},
+						"description": "Calcola l'incasso totale per una proiezione. Richiede ruolo MANAGER o ADMIN."
 					}
 				},
 				{
@@ -598,7 +674,8 @@
 							"raw": "{{baseUrl}}/api/bookings/movie/1/revenue",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "bookings", "movie", "1", "revenue"]
-						}
+						},
+						"description": "Calcola l'incasso totale per un film (somma di tutte le proiezioni). Richiede ruolo MANAGER o ADMIN."
 					}
 				}
 			]
@@ -614,7 +691,8 @@
 							"raw": "{{baseUrl}}/api/reviews",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "reviews"]
-						}
+						},
+						"description": "Lista tutte le recensioni. Endpoint pubblico."
 					}
 				},
 				{
@@ -625,7 +703,8 @@
 							"raw": "{{baseUrl}}/api/reviews/1",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "reviews", "1"]
-						}
+						},
+						"description": "Dettagli di una recensione specifica. Endpoint pubblico."
 					}
 				},
 				{
@@ -636,7 +715,8 @@
 							"raw": "{{baseUrl}}/api/reviews/movie/1",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "reviews", "movie", "1"]
-						}
+						},
+						"description": "Lista le recensioni di un film specifico. Endpoint pubblico."
 					}
 				},
 				{
@@ -647,7 +727,8 @@
 							"raw": "{{baseUrl}}/api/reviews/movie/1/average-rating",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "reviews", "movie", "1", "average-rating"]
-						}
+						},
+						"description": "Calcola il voto medio di un film basato sulle recensioni. Endpoint pubblico."
 					}
 				},
 				{
@@ -666,7 +747,8 @@
 							"raw": "{{baseUrl}}/api/reviews",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "reviews"]
-						}
+						},
+						"description": "Crea una nuova recensione. Richiede ruolo CUSTOMER o ADMIN."
 					}
 				},
 				{
@@ -685,7 +767,8 @@
 							"raw": "{{baseUrl}}/api/reviews/1",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "reviews", "1"]
-						}
+						},
+						"description": "Aggiorna una recensione esistente. Richiede ruolo CUSTOMER o ADMIN."
 					}
 				},
 				{
@@ -697,14 +780,15 @@
 							"raw": "{{baseUrl}}/api/reviews/1",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "reviews", "1"]
-						}
+						},
+						"description": "Elimina una recensione. Richiede ruolo CUSTOMER o ADMIN."
 					}
 				}
 			]
 		},
 		{
 			"name": "📧 Email (Mailgun)",
-			"description": "Test Mailgun email service. ADMIN only.\n\n⚠️ SANDBOX: Con dominio sandbox, le email possono essere inviate SOLO a destinatari autorizzati su Mailgun.",
+			"description": "Test Mailgun email service. Solo ADMIN.\n\n⚠️ SANDBOX: Con dominio sandbox, le email possono essere inviate SOLO a destinatari autorizzati su Mailgun.",
 			"item": [
 				{
 					"name": "Verify Mailgun Config (ADMIN)",
